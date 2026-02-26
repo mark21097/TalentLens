@@ -4,7 +4,18 @@
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
 
-Job Market Analysis
+A learning end-to-end pipeline project that  will analyze a series of problems in today's job market.
+
+## Research Questions
+Q1: Are jobs really hiring? A problem in in today's job market 
+
+## Pipeline Architecture
+[Check image]
+
+## Tech Stack
+[WIP]
+
+## Quick Start
 
 ## Project Organization
 

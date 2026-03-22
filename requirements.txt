@@ -1,9 +1,22 @@
+# ── Core ──────────────────────────────────────────────────────────
 loguru
-mkdocs
-pip
-pytest
 python-dotenv
-ruff
 tqdm
 typer
+ruff
+pytest
+
+# ── Data (Phase 0-1) ─────────────────────────────────────────────
+pandas>=2.0
+pyarrow
+numpy
+
+# ── Visualization (Phase 1) ──────────────────────────────────────
+matplotlib>=3.7
+seaborn>=0.12
+
+# ── Documentation ────────────────────────────────────────────────
+mkdocs
+
+# ── Build ─────────────────────────────────────────────────────────
 -e .

@@ -15,7 +15,17 @@ classifiers = [
     "Programming Language :: Python :: 3",
     
 ]
-requires-python = "~=3.10.0"
+requires-python = ">=3.10"
+
+dependencies = [
+    "loguru",
+    "python-dotenv",
+    "tqdm",
+    "typer",
+    "pandas>=2.0",
+    "pyarrow",
+    "numpy",
+]
 
 
 [tool.ruff]

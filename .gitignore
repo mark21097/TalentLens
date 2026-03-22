@@ -144,6 +144,11 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Claude
+CLAUDE.md
+.claude/
+.claude
+
 # Environments
 .env
 .venv

@@ -4,16 +4,23 @@
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
 
-A learning end-to-end pipeline project that  will analyze a series of problems in today's job market.
+A learning end-to-end pipeline project that will analyze a series of problems in today's job market.
 
 ## Research Questions
-Q1: Are jobs really hiring? A problem in in today's job market 
+Q1: Are jobs really hiring? A problem in in today's job market are companies throwing "Ghost jobs" to make it look like the company is growing without the actual intent to hire.
+Q2: How has the definition of "entry-level" positions changed over the last three years. We will compare a datasets from the years (2019, 2023, and 2026)
+Q3: Are there salary penalty for fully remote jobs in SWE/AI/ML compared to roles that are hybrid or fully in-office positions (e.g tech hubs).
+Q4:
 
 ## Pipeline Architecture
 [Check image]
 
 ## Tech Stack
-[WIP]
+**Databases:** PostgreSQL + pgvector
+**Data Preprocessing:**: Pandas & SQLAlchemy
+**RAG Pipelines**: LangChain
+**Embedding/LLM:** Ollama
+**API / App:** FastAPI & Streamlit
 
 ## Quick Start
 

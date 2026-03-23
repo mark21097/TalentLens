@@ -7,20 +7,20 @@
 A learning end-to-end pipeline project that will analyze a series of problems in today's job market.
 
 ## Research Questions
-Q1: Are jobs really hiring? A problem in in today's job market are companies throwing "Ghost jobs" to make it look like the company is growing without the actual intent to hire.
-Q2: How has the definition of "entry-level" positions changed over the last three years. We will compare a datasets from the years (2019, 2023, and 2026)
-Q3: Are there salary penalty for fully remote jobs in SWE/AI/ML compared to roles that are hybrid or fully in-office positions (e.g tech hubs).
-Q4:
+- Q1: Are jobs really hiring? A problem in in today's job market are companies throwing "Ghost jobs" to make it look like the company is growing without the actual intent to hire.
+- Q2: How has the definition of "entry-level" positions changed over the last three years. We will compare a datasets from the years (2019, 2023, and 2026)
+- Q3: Are there salary penalty for fully remote jobs in SWE/AI/ML compared to roles that are hybrid or fully in-office positions (e.g tech hubs).
+- Q4:
 
 ## Pipeline Architecture
 [Check image]
 
 ## Tech Stack
-**Databases:** PostgreSQL + pgvector
-**Data Preprocessing:**: Pandas & SQLAlchemy
-**RAG Pipelines**: LangChain
-**Embedding/LLM:** Ollama
-**API / App:** FastAPI & Streamlit
+- **Databases:** PostgreSQL + pgvector
+- **Data Preprocessing:** Pandas & SQLAlchemy
+- **RAG Pipelines:** LangChain
+- **Embedding/LLM:** Ollama
+- **API / App:** FastAPI & Streamlit
 
 ## Quick Start
 
@@ -31,7 +31,6 @@ Q4:
 ├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
 ├── README.md          <- The top-level README for developers using this project.
 ├── data
-│   ├── external       <- Data from third party sources.
 │   ├── interim        <- Intermediate data that has been transformed.
 │   ├── processed      <- The final, canonical data sets for modeling.
 │   └── raw            <- The original, immutable data dump.

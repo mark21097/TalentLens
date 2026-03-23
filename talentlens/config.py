@@ -38,6 +38,8 @@ SKILLS_MAP_CSV = RAW_DIR / "mappings" / "skills.csv"
 
 # ── Processed data paths ──────────────────────────────────────────
 POSTINGS_CLEAN_PARQUET = PROCESSED_DIR / "postings_clean.parquet"
+POSTINGS_NLP_PARQUET = PROCESSED_DIR / "postings_nlp.parquet"
+POSTINGS_FEATURES_PARQUET = PROCESSED_DIR / "postings_features.parquet"
 EMBEDDINGS_NPY = PROCESSED_DIR / "description_embeddings.npy"
 EMBEDDING_JOB_IDS_NPY = PROCESSED_DIR / "embedding_job_ids.npy"
 

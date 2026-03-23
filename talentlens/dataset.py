@@ -180,14 +180,13 @@ def clean_postings(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_datetime(df[col], unit="ms", errors="coerce")
 
-    # 4. Normalize salaries to yearly
+    # 4. Normalize salaries to yearly (vectorized for speed on 3M+ rows)
+    is_hourly = df["pay_period"].str.upper() == "HOURLY"
     for salary_col in ["min_salary", "med_salary", "max_salary"]:
         if salary_col in df.columns:
             yearly_col = f"{salary_col}_yearly"
-            df[yearly_col] = df.apply(
-                lambda row: normalize_salary(row, salary_col, "pay_period"),
-                axis=1,
-            )
+            df[yearly_col] = df[salary_col].copy()
+            df.loc[is_hourly, yearly_col] = df.loc[is_hourly, salary_col] * HOURS_PER_YEAR
 
     # 5. Derived columns
     df["is_remote"] = df["remote_allowed"].fillna(0).astype(bool)

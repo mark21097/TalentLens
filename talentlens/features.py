@@ -185,7 +185,7 @@ def add_sentiment(
 
 # Keywords that signal senior-level expectations
 SENIOR_SIGNAL_PATTERNS = [
-    r"\b\d+\+?\s*years?\b",          # "5+ years", "3 years"
+    r"\b\d{1,2}\+?\s*years?\b(?!\s*(?:old|salary|yearly|annual|wage))",  # "5+ years" but NOT "75000 yearly"
     r"\bsenior\b",                     # "senior"
     r"\blead\b",                       # "lead"
     r"\bmanage[rd]?\b",               # "manager", "managed", "manage"
@@ -195,6 +195,9 @@ SENIOR_SIGNAL_PATTERNS = [
     r"\bproven track record\b",        # "proven track record"
     r"\bstrategic\b",                  # "strategic"
 ]
+
+# Max realistic years of experience for any job (safety cap)
+MAX_YEARS_CAP = 30
 
 
 def detect_senior_signals(text: str) -> dict:
@@ -220,11 +223,17 @@ def detect_senior_signals(text: str) -> dict:
         total += len(matches)
 
     # Extract the maximum years mentioned (e.g., "5+ years" → 5)
-    year_matches = re.findall(r"(\d+)\+?\s*years?", text_lower)
+    # Only match 1-2 digit numbers, exclude "yearly/salary/annual" (salary false positives)
+    year_matches = re.findall(
+        r"\b(\d{1,2})\+?\s*years?\b(?!\s*(?:old|salary|yearly|annual|wage))",
+        text_lower,
+    )
     max_years = 0
     if year_matches:
         for y in year_matches:
             val = int(y)
+            if val > MAX_YEARS_CAP:
+                continue  # Skip unrealistic values
             if val > max_years:
                 max_years = val
 

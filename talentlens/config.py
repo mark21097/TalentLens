@@ -1,7 +1,6 @@
-"""Centralized configuration and file paths for the TalentLens project."""
+"""Centralized configuration and file paths for TalentLens"""
 
 from pathlib import Path
-
 from dotenv import load_dotenv
 
 load_dotenv()

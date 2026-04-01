@@ -194,9 +194,7 @@ def clean_postings(df: pd.DataFrame) -> pd.DataFrame:
     if "listed_time" in df.columns and "closed_time" in df.columns:
         df["days_open"] = (df["closed_time"] - df["listed_time"]).dt.days
 
-    df["experience_level"] = (
-        df["formatted_experience_level"].fillna("Unknown").str.strip()
-    )
+    df["experience_level"] = df["formatted_experience_level"].fillna("Unknown").str.strip()
 
     logger.info(
         f"Cleaning complete: {initial_count:,} → {len(df):,} postings "

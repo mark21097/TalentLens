@@ -1,6 +1,8 @@
 """Centralized configuration and file paths for TalentLens"""
 
+import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -41,12 +43,22 @@ POSTINGS_NLP_PARQUET = PROCESSED_DIR / "postings_nlp.parquet"
 POSTINGS_FEATURES_PARQUET = PROCESSED_DIR / "postings_features.parquet"
 EMBEDDINGS_NPY = PROCESSED_DIR / "description_embeddings.npy"
 EMBEDDING_JOB_IDS_NPY = PROCESSED_DIR / "embedding_job_ids.npy"
+TOPIC_ASSIGNMENTS_PARQUET = PROCESSED_DIR / "topic_assignments.parquet"
+
+# Minimal metadata used for retrieval demos (kept small for fast loads)
+RETRIEVAL_META_PARQUET = PROCESSED_DIR / "retrieval_meta.parquet"
 
 # ── Model paths ───────────────────────────────────────────────────
 FAISS_INDEX_DIR = MODELS_DIR / "faiss_index"
+FAISS_INDEX_PATH = FAISS_INDEX_DIR / "postings.index"
 SALARY_MODEL_PATH = MODELS_DIR / "salary_model.joblib"
 GHOST_JOB_MODEL_PATH = MODELS_DIR / "ghost_job_model.joblib"
 BERTOPIC_MODEL_DIR = MODELS_DIR / "bertopic_model"
+
+# ── Database (Postgres + pgvector) ────────────────────────────────
+# Example: postgresql+psycopg://user:password@localhost:5432/talentlens
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+PGVECTOR_TABLE = os.getenv("PGVECTOR_TABLE", "job_postings")
 
 # ── Constants ─────────────────────────────────────────────────────
 RANDOM_SEED = 42

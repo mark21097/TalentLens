@@ -9,19 +9,17 @@ Usage:
 
 from __future__ import annotations
 
-import re
 from html import unescape
-from typing import Optional
+import re
 
+from loguru import logger
 import numpy as np
 import pandas as pd
 import spacy
-from loguru import logger
 from textblob import TextBlob
 from tqdm import tqdm
 
-from talentlens.config import EMBEDDING_DIM, EMBEDDING_MODEL_NAME
-
+from talentlens.config import EMBEDDING_MODEL_NAME
 
 # ── Text Cleaning ────────────────────────────────────────────────
 
@@ -186,14 +184,14 @@ def add_sentiment(
 # Keywords that signal senior-level expectations
 SENIOR_SIGNAL_PATTERNS = [
     r"\b\d{1,2}\+?\s*years?\b(?!\s*(?:old|salary|yearly|annual|wage))",  # "5+ years" but NOT "75000 yearly"
-    r"\bsenior\b",                     # "senior"
-    r"\blead\b",                       # "lead"
-    r"\bmanage[rd]?\b",               # "manager", "managed", "manage"
-    r"\bexpert\b",                     # "expert"
-    r"\badvanced\b",                   # "advanced"
-    r"\bextensive experience\b",       # "extensive experience"
-    r"\bproven track record\b",        # "proven track record"
-    r"\bstrategic\b",                  # "strategic"
+    r"\bsenior\b",  # "senior"
+    r"\blead\b",  # "lead"
+    r"\bmanage[rd]?\b",  # "manager", "managed", "manage"
+    r"\bexpert\b",  # "expert"
+    r"\badvanced\b",  # "advanced"
+    r"\bextensive experience\b",  # "extensive experience"
+    r"\bproven track record\b",  # "proven track record"
+    r"\bstrategic\b",  # "strategic"
 ]
 
 # Max realistic years of experience for any job (safety cap)

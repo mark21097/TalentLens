@@ -15,7 +15,6 @@ import re
 from loguru import logger
 import numpy as np
 import pandas as pd
-import spacy
 from textblob import TextBlob
 from tqdm import tqdm
 
@@ -103,6 +102,8 @@ def lemmatize_texts(
     Returns:
         Series of lemmatized text strings.
     """
+    import spacy  # lazy import — avoid triggering torch DLL chain at module level
+
     nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"])
     # We only need the tokenizer and lemmatizer — disabling NER and parser
     # makes it ~3x faster since we don't need entity recognition or

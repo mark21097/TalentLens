@@ -88,49 +88,41 @@ def lemmatize_texts(
     n_process: int = 1,
     max_chars: int = 100_000,
 ) -> pd.Series:
-    """Batch lemmatize texts using spaCy, removing stopwords and punctuation.
+    """Batch lemmatize texts using NLTK WordNet, removing stopwords and punctuation.
 
-    Uses spaCy's efficient nlp.pipe() for batch processing instead of
-    processing one text at a time (which would be extremely slow on 123K+ texts).
+    Uses NLTK's WordNetLemmatizer — pure Python, no torch/spaCy dependency.
+    batch_size and n_process are kept for API compatibility but unused.
 
     Args:
         texts: Series of text strings to lemmatize.
-        batch_size: Number of texts to process per batch (keep <=500 to avoid MemoryError).
-        n_process: Number of parallel processes (1 = single-threaded, safest).
+        batch_size: Unused (kept for API compatibility).
+        n_process: Unused (kept for API compatibility).
         max_chars: Truncate texts longer than this to prevent memory issues.
 
     Returns:
         Series of lemmatized text strings.
     """
-    import spacy  # lazy import — avoid triggering torch DLL chain at module level
+    import nltk  # lazy import
+    from nltk.stem import WordNetLemmatizer
+    from nltk.corpus import stopwords
 
-    nlp = spacy.load("en_core_web_sm", disable=["ner", "parser"])
-    # We only need the tokenizer and lemmatizer — disabling NER and parser
-    # makes it ~3x faster since we don't need entity recognition or
-    # dependency parsing for lemmatization.
-    nlp.max_length = max_chars + 1000  # Allow slightly over to avoid hard failures
+    nltk.download("wordnet", quiet=True)
+    nltk.download("stopwords", quiet=True)
 
-    logger.info(f"Lemmatizing {len(texts):,} texts with spaCy (batch_size={batch_size})...")
+    lemmatizer = WordNetLemmatizer()
+    stop_words = set(stopwords.words("english"))
+
+    logger.info(f"Lemmatizing {len(texts):,} texts with NLTK WordNet...")
 
     results = []
-    # Truncate very long texts to prevent memory blowup
-    text_list = []
-    for t in texts.fillna("").tolist():
-        if len(t) > max_chars:
-            text_list.append(t[:max_chars])
-        else:
-            text_list.append(t)
-
-    for doc in tqdm(
-        nlp.pipe(text_list, batch_size=batch_size, n_process=n_process),
-        total=len(text_list),
-        desc="Lemmatizing",
-    ):
-        # Keep only alphabetic tokens that aren't stopwords
-        tokens = []
-        for token in doc:
-            if token.is_alpha and not token.is_stop:
-                tokens.append(token.lemma_.lower())
+    for text in tqdm(texts.fillna("").tolist(), desc="Lemmatizing"):
+        if len(text) > max_chars:
+            text = text[:max_chars]
+        tokens = [
+            lemmatizer.lemmatize(w)
+            for w in text.split()
+            if w.isalpha() and w not in stop_words
+        ]
         results.append(" ".join(tokens))
 
     logger.info("Lemmatization complete.")

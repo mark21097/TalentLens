@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Prevent crash when Anaconda's libiomp5md.dll and PyTorch's libomp.dll are
+# both present in the same process (common on Windows + Anaconda environments).
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 # ── Project structure ──────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = PROJECT_ROOT / "data"

@@ -1,0 +1,104 @@
+Why do we create a talentlens folder?
+Good question! The talentlens/ folder is your Python package — it's where all your reusable source code lives. Here's why it matters:
+
+Separation of concerns: Notebooks (notebooks/) are for exploration and storytelling. The talentlens/ package holds the clean, tested, importable code that the notebooks (and later Streamlit) call.
+
+Import anywhere: Because of the -e . in your requirements.txt (editable install), you can do from talentlens.config import POSTINGS_CSV from any notebook or script. No messy sys.path hacks.
+
+Reusability: You write clean_postings() once in talentlens/dataset.py, then use it in notebooks, tests, and the Streamlit app without copy-pasting.
+
+Professional standard: This is the Cookiecutter Data Science convention your README already describes. Hiring managers expect to see source code separated from notebooks.
+
+The structure maps to your pipeline phases:
+
+talentlens/config.py → all file paths and constants
+talentlens/dataset.py → data loading and cleaning
+talentlens/features.py → NLP feature engineering (Phase 2)
+talentlens/modeling/ → ML training and prediction (Phase 3)
+talentlens/rag/ → RAG pipeline with LangChain + FAISS (Phase 4)
+
+
+Notebook 01 Questions:
+
+"How important is sample_values? Can we replace it with something else?"
+Sample values are moderately useful — they let you quickly eyeball if a column looks right (e.g., seeing "New York, NY" confirms the location format). But we could replace it with something more analytical like min/max for numeric columns and most_common_value for categorical columns. That would be more informative for cleaning decisions. Up to you — I can swap it out.
+
+"For profile postings, we gave the shape again?"
+You're right — it's redundant since we printed shape in the cell above. I'd keep it in profile_dataframe() since it's a reusable function (it also profiles the secondary tables), but we can remove the duplicate print in the cell above if you want.
+
+"Would it be beneficial to map out this schema using an ER diagram and translate to SQL tables?"
+Yes, absolutely. An ER diagram would be excellent here — especially since you learned this in Database Management. The schema is:
+
+
+postings (PK: job_id) ──1:N── job_skills (FK: job_id, FK: skill_abr)
+                       ──1:N── job_industries (FK: job_id, FK: industry_id)
+                       ──1:N── benefits (FK: job_id)
+                       ──N:1── companies (FK: company_id → PK: company_id)
+                       ──1:N── salaries (FK: job_id)
+
+companies (PK: company_id) ──1:N── company_industries
+                            ──1:N── company_specialities
+                            ──1:N── employee_counts
+
+skills (PK: skill_abr)        ← lookup table
+industries (PK: industry_id)  ← lookup table
+A schema.py could define this formally, but for now documenting it in the notebook and data dictionary is sufficient. We can add a Draw.io ER diagram to the README later.
+
+"So the secondary tables allow us to explore the data more in depth essentially?"
+Exactly. The main postings table has the core info (title, description, salary). The secondary tables add dimensions — what skills a job requires, what industry it's in, what benefits are offered, how big the company is. These become features for ML later.
+
+"Since our theme is on skills, we are now mapping the skills right?"
+Yes — job_skills has abbreviations like IT, SALE, DSGN. The mapping table translates those to full names like "Information Technology", "Sales", "Design". We join them so the data is human-readable and usable for analysis.
+
+Notebook 02 Questions:
+
+"I did all nrows, is it normal to use smaller samples?"
+Very normal and professional. In industry, data scientists always prototype on a small sample first (10K-50K rows) to make sure the code works, then scale up to the full dataset. You save time debugging on a 2-second load instead of a 2-minute load. The nrows parameter is there specifically for this workflow.
+
+"Are the critical columns all attributes or just the ones we're looking for?"
+Just the ones relevant to our research themes. The raw table has ~27 columns, but we only profile the 12 that matter for our analysis (description for NLP, salary for Theme 1, days_open for Theme 2, applies/views for Theme 4, etc.). The others (like job_posting_url, application_url) aren't useful for modeling.
+
+"We didn't get any duplicate job_id rows? Is this just good practice?"
+Yes, it's defensive programming — you check even if you expect it to be clean. In real-world data pipelines, data arrives dirty in unpredictable ways. The fact that there were no dupes is good news, but the check costs nothing and would catch a real problem instantly. Always verify assumptions.
+
+"The cleaning pipeline only cleaned 7 out of 123K rows"
+That's actually a sign the dataset is high quality! Most Kaggle datasets are pre-curated. In production, you'd often drop 10-30% of rows. The 7 rows were likely missing descriptions or titles. The cleaning pipeline also transforms data (timestamps, salary normalization, derived columns) — that's equally important even if few rows are dropped.
+
+"For salary stats, we didn't account for 50%, 75%, max"
+.describe() actually does show 25%, 50%, 75%, max by default. If it's not showing, it's likely because the output got truncated in VS Code. You can explicitly print them:
+
+
+print(f"Median (50%): ${df_clean['med_salary_yearly'].median():,.0f}")
+print(f"75th pctile:  ${df_clean['med_salary_yearly'].quantile(0.75):,.0f}")
+print(f"Max:          ${df_clean['med_salary_yearly'].max():,.0f}")
+"Is saving as Parquet the standard/professional?"
+Yes — Parquet is the industry standard for analytical data. Every data team at companies like Netflix, Spotify, Airbnb uses Parquet (or the similar format Delta Lake/Iceberg). CSV is only used for raw ingestion. Reasons: 5x smaller, 10x faster to load, preserves column types (no more "is this a string or an int?" problems).
+
+Notebook 03 (EDA) Questions:
+
+"Can't we just do .info() again instead of listing columns?"
+Yes! .info() is better here — it shows dtypes and non-null counts in one shot. I'll swap that in.
+
+"How to interpret the boxplot (Salary by Experience Level)?"
+
+The box = middle 50% of salaries (25th to 75th percentile)
+The line inside the box = median salary (50th percentile)
+The whiskers (lines extending from the box) = range of typical values (1.5x the box width)
+Dots beyond the whiskers = outliers (unusually high/low salaries)
+What to look for: Does the median increase from Entry → Director? Is the spread (box width) larger for some levels? Are Executive salaries much higher? This directly answers Theme 1.
+"Days open stats: all the other stats are 0?"
+This means most postings have days_open = 0 — they were opened and closed on the same day (or the timestamps are the same). This is actually an important finding for Theme 2 (Ghost Jobs): many postings close immediately, while a long tail stays open for weeks/months. The interesting ghost job candidates are in that long tail. We might want to filter to days_open > 0 for the ghost job analysis.
+
+"Weekly posting volume spans only a month — should we do multiple intervals?"
+You're right to question this. The dataset likely covers a specific time range (2023-2024). We already have monthly and weekly views. If the weekly chart looks compressed, it's because 2+ years of weekly data is a lot of points. We could add:
+
+Quarterly aggregation for the big picture
+Filter to specific months to zoom in on seasonal patterns
+Year-over-year comparison (2023 vs 2024)
+"How to interpret the heatmap?"
+
+Each cell shows the Pearson correlation between two variables (-1 to +1)
++1.0 (dark red) = perfect positive correlation (when one goes up, the other goes up)
+-1.0 (dark blue) = perfect negative correlation (when one goes up, the other goes down)
+0.0 (white) = no linear relationship
+What to look for: min/med/max salary should be highly correlated with each other (~0.9+). Views and applies should be positively correlated. days_open might be negatively correlated with applies (ghost jobs get fewer applications). The diagonal is always 1.0 (a variable correlates perfectly with itself).

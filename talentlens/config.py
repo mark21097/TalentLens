@@ -57,6 +57,8 @@ FAISS_INDEX_DIR = MODELS_DIR / "faiss_index"
 FAISS_INDEX_PATH = FAISS_INDEX_DIR / "postings.index"
 SALARY_MODEL_PATH = MODELS_DIR / "salary_model.joblib"
 GHOST_JOB_MODEL_PATH = MODELS_DIR / "ghost_job_model.joblib"
+ENTRY_LEVEL_MODEL_PATH = MODELS_DIR / "entry_level_paradox_model.joblib"
+EMPLOYER_BRANDING_MODEL_PATH = MODELS_DIR / "employer_branding_model.joblib"
 BERTOPIC_MODEL_DIR = MODELS_DIR / "bertopic_model"
 
 # ── Database (Postgres + pgvector) ────────────────────────────────

@@ -4,23 +4,36 @@
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
 
-A learning end-to-end pipeline project that will analyze a series of problems in today's job market.
+An end-to-end RAG-powered data science pipeline analyzing 123,842 LinkedIn job postings across five research themes.
 
 ## Research Questions
-- Q1: Are jobs really hiring? A problem in in today's job market are companies throwing "Ghost jobs" to make it look like the company is growing without the actual intent to hire.
-- Q2: How has the definition of "entry-level" positions changed over the last three years. We will compare a datasets from the years (2019, 2023, and 2026)
-- Q3: Are there salary penalty for fully remote jobs in SWE/AI/ML compared to roles that are hybrid or fully in-office positions (e.g tech hubs).
-- Q4:
+- **Q1 — Ghost Job Detection**: Are companies posting "ghost jobs" with no real intent to hire? We classify probable ghost postings using engagement signals (views, applications, duration open).
+- **Q2 — Entry-Level Paradox**: Do jobs labeled "entry-level" actually demand senior qualifications? ~40% of entry-level postings mention 4+ years of experience.
+- **Q3 — Salary Prediction**: Can NLP features from job descriptions predict median salary? We train regression models on text stats, embeddings, and structured features.
+- **Q4 — Employer Branding**: What drives application-to-view ratio? We model which description characteristics (sentiment, length, remote status) attract more applicants.
+- **Q5 — A/B Testing RAG**: Does prompt engineering improve the quality of LLM answers over retrieved job postings? Prompt A vs Prompt B evaluated in the Streamlit app.
 
 ## Pipeline Architecture
-[Check image]
+
+```
+Raw CSVs (3.38M rows)
+  → Phase 1: Clean + EDA            → postings_clean.parquet (123K rows)
+  → Phase 2: NLP Features           → postings_features.parquet (47 cols)
+                                    → description_embeddings.npy (123K × 384)
+  → Phase 3: ML Models              → salary_model.joblib, ghost_job_model.joblib
+  → Phase 4: RAG Pipeline (FAISS)   → postings.index (FAISS)
+  → Phase 5: Streamlit App          → Multi-page app + A/B test chatbot
+```
 
 ## Tech Stack
-- **Databases:** PostgreSQL + pgvector
-- **Data Preprocessing:** Pandas & SQLAlchemy
-- **RAG Pipelines:** LangChain
-- **Embedding/LLM:** Ollama
-- **API / App:** FastAPI & Streamlit
+- **Vector DB:** FAISS (local, no server required)
+- **Embeddings:** sentence-transformers/all-MiniLM-L6-v2 (384-dim, free)
+- **LLM:** Ollama (mistral / llama3.1, local, no API costs)
+- **Data:** Pandas, PyArrow (Parquet)
+- **ML:** scikit-learn, XGBoost, SHAP
+- **NLP:** spaCy, TextBlob, BERTopic, sentence-transformers
+- **RAG:** LangChain + FAISS
+- **App:** Streamlit, Plotly
 
 ## Quick Start
 

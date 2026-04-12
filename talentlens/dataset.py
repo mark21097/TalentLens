@@ -145,6 +145,43 @@ def normalize_salary(
     return float(salary)
 
 
+def _normalize_salaries(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert salary columns to yearly values (handles hourly pay periods).
+
+    Args:
+        df: DataFrame with salary and pay_period columns.
+
+    Returns:
+        DataFrame with added *_yearly columns.
+    """
+    is_hourly = df["pay_period"].str.upper() == "HOURLY"
+    for salary_col in ["min_salary", "med_salary", "max_salary"]:
+        if salary_col in df.columns:
+            yearly_col = f"{salary_col}_yearly"
+            df[yearly_col] = df[salary_col].copy()
+            df.loc[is_hourly, yearly_col] = df.loc[is_hourly, salary_col] * HOURS_PER_YEAR
+    return df
+
+
+def _derive_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Add is_remote, days_open, and experience_level derived columns.
+
+    Args:
+        df: DataFrame with remote_allowed, listed_time, closed_time,
+            and formatted_experience_level columns.
+
+    Returns:
+        DataFrame with added derived columns.
+    """
+    df["is_remote"] = df["remote_allowed"].fillna(0).astype(bool)
+
+    if "listed_time" in df.columns and "closed_time" in df.columns:
+        df["days_open"] = (df["closed_time"] - df["listed_time"]).dt.days
+
+    df["experience_level"] = df["formatted_experience_level"].fillna("Unknown").str.strip()
+    return df
+
+
 def clean_postings(df: pd.DataFrame) -> pd.DataFrame:
     """Apply all cleaning transformations to raw postings.
 
@@ -180,21 +217,9 @@ def clean_postings(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_datetime(df[col], unit="ms", errors="coerce")
 
-    # 4. Normalize salaries to yearly (vectorized for speed on 3M+ rows)
-    is_hourly = df["pay_period"].str.upper() == "HOURLY"
-    for salary_col in ["min_salary", "med_salary", "max_salary"]:
-        if salary_col in df.columns:
-            yearly_col = f"{salary_col}_yearly"
-            df[yearly_col] = df[salary_col].copy()
-            df.loc[is_hourly, yearly_col] = df.loc[is_hourly, salary_col] * HOURS_PER_YEAR
-
-    # 5. Derived columns
-    df["is_remote"] = df["remote_allowed"].fillna(0).astype(bool)
-
-    if "listed_time" in df.columns and "closed_time" in df.columns:
-        df["days_open"] = (df["closed_time"] - df["listed_time"]).dt.days
-
-    df["experience_level"] = df["formatted_experience_level"].fillna("Unknown").str.strip()
+    # 4 & 5. Salary normalization and derived columns
+    df = _normalize_salaries(df)
+    df = _derive_columns(df)
 
     logger.info(
         f"Cleaning complete: {initial_count:,} → {len(df):,} postings "

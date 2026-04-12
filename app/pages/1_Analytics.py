@@ -18,6 +18,15 @@ from talentlens.config import (
 st.set_page_config(page_title="Analytics | TalentLens", layout="wide")
 st.title("📊 Analytics")
 
+# ── Layout constants ───────────────────────────────────────────────────────────
+_H_TALL = 400       # standard chart height (px)
+_H_MID = 380        # slightly shorter for side-by-side pairs
+_H_SHORT = 350      # compact charts (histograms)
+_H_MINI = 300       # small supplementary charts
+_SCATTER_SAMPLE = 3_000   # max rows in scatter plots (keeps Plotly fast)
+_GHOST_VIEWS_MIN = 200    # min views to be considered a ghost job signal
+_GHOST_APPLIES_MAX = 5    # max applies to be considered a ghost job signal
+
 
 @st.cache_data(show_spinner="Loading data...")
 def load_data() -> pd.DataFrame:
@@ -53,7 +62,7 @@ with tab1:
             labels={"med_salary_yearly": "Median Annual Salary ($)", "experience_level": ""},
             color="experience_level",
         )
-        fig.update_layout(showlegend=False, height=400)
+        fig.update_layout(showlegend=False, height=_H_TALL)
         fig.update_yaxes(tickprefix="$", tickformat=",")
         st.plotly_chart(fig, use_container_width=True)
 
@@ -69,7 +78,7 @@ with tab1:
             labels={"med_salary_yearly": "Median Annual Salary ($)", "work_type": ""},
             color="work_type",
         )
-        fig2.update_layout(showlegend=False, height=400)
+        fig2.update_layout(showlegend=False, height=_H_TALL)
         fig2.update_yaxes(tickprefix="$", tickformat=",")
         st.plotly_chart(fig2, use_container_width=True)
 
@@ -103,12 +112,12 @@ with tab2:
             line_color="red",
             annotation_text=f"Median: {df_eng['apply_rate'].median():.3f}",
         )
-        fig.update_layout(height=350)
+        fig.update_layout(height=_H_SHORT)
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
         st.subheader("High Views, Low Applies (Ghost Signal)")
-        ghost_heuristic = df_eng[(df_eng["views"] > 200) & (df_eng["applies"] < 5)]
+        ghost_heuristic = df_eng[(df_eng["views"] > _GHOST_VIEWS_MIN) & (df_eng["applies"] < _GHOST_APPLIES_MAX)]
         st.metric("Probable Ghost Jobs", f"{len(ghost_heuristic):,}")
         st.metric("Ghost Rate", f"{len(ghost_heuristic)/len(df_eng)*100:.1f}%")
         st.dataframe(
@@ -123,22 +132,24 @@ with tab2:
             "Internship": 0, "Entry level": 1, "Associate": 2,
             "Mid-Senior level": 3, "Director": 4, "Executive": 5, "Unknown": 2
         }
-        df["exp_level_encoded"] = df["experience_level"].map(exp_order_map).fillna(2)
-        df["is_remote_int"] = df["is_remote"].astype(int)
-        df["sponsored_int"] = df["sponsored"].fillna(0).astype(int)
+        # Work on a local copy — do NOT mutate the @st.cache_data result
+        df_scored = df.copy()
+        df_scored["exp_level_encoded"] = df_scored["experience_level"].map(exp_order_map).fillna(2)
+        df_scored["is_remote_int"] = df_scored["is_remote"].astype(int)
+        df_scored["sponsored_int"] = df_scored["sponsored"].fillna(0).astype(int)
 
-        FEATURE_COLS = [
+        GHOST_FEATURE_COLS = [
             "desc_word_count", "sentiment_polarity", "sentiment_subjectivity",
             "senior_signal_count", "max_years_required", "n_skills",
             "exp_level_encoded", "is_remote_int", "sponsored_int",
         ]
-        X_all = df[FEATURE_COLS].fillna(0).values
-        df["ghost_prob"] = model.predict_proba(X_all)[:, 1]
+        X_all = df_scored[GHOST_FEATURE_COLS].fillna(0).values
+        df_scored["ghost_prob"] = model.predict_proba(X_all)[:, 1]
 
         st.subheader("Ghost Probability Distribution (All Postings)")
-        fig3 = px.histogram(df, x="ghost_prob", nbins=50, labels={"ghost_prob": "Ghost Probability"})
+        fig3 = px.histogram(df_scored, x="ghost_prob", nbins=50, labels={"ghost_prob": "Ghost Probability"})
         fig3.add_vline(x=0.5, line_dash="dash", line_color="red", annotation_text="Threshold 0.5")
-        fig3.update_layout(height=300)
+        fig3.update_layout(height=_H_MINI)
         st.plotly_chart(fig3, use_container_width=True)
     else:
         st.info("ℹ️ Run notebook 11 to train the ghost job classifier.")
@@ -164,7 +175,7 @@ with tab3:
             labels={"senior_signal_count": "Senior Signal Count", "experience_level": ""},
             color="experience_level",
         )
-        fig.update_layout(showlegend=False, height=400)
+        fig.update_layout(showlegend=False, height=_H_TALL)
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
@@ -179,7 +190,7 @@ with tab3:
             color=pct_years.values,
             color_continuous_scale="Blues",
         )
-        fig2.update_layout(height=400, coloraxis_showscale=False)
+        fig2.update_layout(height=_H_TALL, coloraxis_showscale=False)
         st.plotly_chart(fig2, use_container_width=True)
 
     entry_df = df_known[df_known["experience_level"] == "Entry level"]
@@ -210,7 +221,7 @@ with tab4:
             labels={"apply_rate": "Apply Rate", "work_type": ""},
             color="work_type",
         )
-        fig.update_layout(showlegend=False, height=380)
+        fig.update_layout(showlegend=False, height=_H_MID)
         st.plotly_chart(fig, use_container_width=True)
 
         remote_med = df_eng2[df_eng2["is_remote"] == True]["apply_rate"].median()
@@ -221,7 +232,7 @@ with tab4:
 
     with col2:
         st.subheader("Apply Rate vs Sentiment Polarity")
-        sample = df_eng2[df_eng2["apply_rate"] < 0.5].sample(min(3000, len(df_eng2)), random_state=42)
+        sample = df_eng2[df_eng2["apply_rate"] < 0.5].sample(min(_SCATTER_SAMPLE, len(df_eng2)), random_state=42)
         fig2 = px.scatter(
             sample,
             x="sentiment_polarity",
@@ -230,5 +241,5 @@ with tab4:
             trendline="lowess",
             labels={"sentiment_polarity": "Description Sentiment (polarity)", "apply_rate": "Apply Rate"},
         )
-        fig2.update_layout(height=380)
+        fig2.update_layout(height=_H_MID)
         st.plotly_chart(fig2, use_container_width=True)

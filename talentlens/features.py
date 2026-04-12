@@ -18,7 +18,11 @@ import pandas as pd
 from textblob import TextBlob
 from tqdm import tqdm
 
-from talentlens.config import EMBEDDING_MODEL_NAME
+from talentlens.config import EMBEDDING_DIM, EMBEDDING_MODEL_NAME
+
+# ── Module-level constants ────────────────────────────────────────
+_DEFAULT_LEMMA_BATCH_SIZE: int = 500   # rows per tqdm tick in lemmatize_texts
+_DEFAULT_EMBED_BATCH_SIZE: int = 256   # rows per encoder batch in generate_embeddings
 
 # ── Text Cleaning ────────────────────────────────────────────────
 
@@ -84,7 +88,7 @@ def add_text_stats(df: pd.DataFrame) -> pd.DataFrame:
 
 def lemmatize_texts(
     texts: pd.Series,
-    batch_size: int = 500,
+    batch_size: int = _DEFAULT_LEMMA_BATCH_SIZE,
     n_process: int = 1,
     max_chars: int = 100_000,
 ) -> pd.Series:
@@ -270,12 +274,12 @@ def add_senior_signals(df: pd.DataFrame, text_col: str = "description") -> pd.Da
 def generate_embeddings(
     texts: list[str],
     model_name: str = EMBEDDING_MODEL_NAME,
-    batch_size: int = 256,
+    batch_size: int = _DEFAULT_EMBED_BATCH_SIZE,
     show_progress: bool = True,
 ) -> np.ndarray:
     """Generate sentence-transformer embeddings in batches.
 
-    Uses all-MiniLM-L6-v2 by default (384 dimensions, fast, free).
+    Uses all-MiniLM-L6-v2 by default (EMBEDDING_DIM dimensions, fast, free).
     Processes in batches with a progress bar since 123K+ texts takes time.
 
     Args:
@@ -302,4 +306,9 @@ def generate_embeddings(
     )
 
     logger.info(f"Embeddings shape: {embeddings.shape} (dtype: {embeddings.dtype})")
+    if embeddings.shape[1] != EMBEDDING_DIM:
+        logger.warning(
+            f"Unexpected embedding dim {embeddings.shape[1]} — expected {EMBEDDING_DIM}. "
+            "Update EMBEDDING_DIM in config.py if you changed the model."
+        )
     return embeddings

@@ -180,7 +180,12 @@ def add_sentiment(
 
 # Keywords that signal senior-level expectations
 SENIOR_SIGNAL_PATTERNS = [
-    r"\b\d{1,2}\+?\s*years?\b(?!\s*(?:old|salary|yearly|annual|wage))",  # "5+ years" but NOT "75000 yearly"
+    # "5+ years" / "10 years" — guard against non-experience uses:
+    #   "ago"    → "founded 30 years ago"
+    #   "per"    → "$75 per year" (salary)
+    #   "old"    → "10 years old" (company age)
+    #   "yearly/annual/wage/salary" → salary descriptions
+    r"\b\d{1,2}\+?\s*years?\b(?!\s*(?:ago|per|old|salary|yearly|annual|wage))",
     r"\bsenior\b",  # "senior"
     r"\blead\b",  # "lead"
     r"\bmanage[rd]?\b",  # "manager", "managed", "manage"
@@ -218,9 +223,9 @@ def detect_senior_signals(text: str) -> dict:
         total += len(matches)
 
     # Extract the maximum years mentioned (e.g., "5+ years" → 5)
-    # Only match 1-2 digit numbers, exclude "yearly/salary/annual" (salary false positives)
+    # Negative lookahead mirrors SENIOR_SIGNAL_PATTERNS to stay consistent.
     year_matches = re.findall(
-        r"\b(\d{1,2})\+?\s*years?\b(?!\s*(?:old|salary|yearly|annual|wage))",
+        r"\b(\d{1,2})\+?\s*years?\b(?!\s*(?:ago|per|old|salary|yearly|annual|wage))",
         text_lower,
     )
     max_years = 0

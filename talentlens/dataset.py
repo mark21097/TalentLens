@@ -202,15 +202,18 @@ def clean_postings(df: pd.DataFrame) -> pd.DataFrame:
     logger.info(f"Cleaning {initial_count:,} postings...")
 
     # 1. Drop rows missing critical text fields
+    before = len(df)
     df = df.dropna(subset=["description"])
-    logger.info(f"After dropping null descriptions: {len(df):,}")
+    logger.info(f"Dropped {before - len(df):,} rows with null descriptions → {len(df):,} remaining")
 
+    before = len(df)
     df = df.dropna(subset=["title"])
-    logger.info(f"After dropping null titles: {len(df):,}")
+    logger.info(f"Dropped {before - len(df):,} rows with null titles → {len(df):,} remaining")
 
     # 2. Deduplicate on job_id
+    before = len(df)
     df = df.drop_duplicates(subset=["job_id"], keep="first")
-    logger.info(f"After deduplication: {len(df):,}")
+    logger.info(f"Dropped {before - len(df):,} duplicate job_ids → {len(df):,} remaining")
 
     # 3. Parse timestamps
     for col in ["original_listed_time", "listed_time", "closed_time", "expiry"]:

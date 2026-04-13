@@ -71,3 +71,17 @@ RANDOM_SEED = 42
 EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384
 HOURS_PER_YEAR = 2080  # For converting hourly salary to yearly
+
+# ── Ghost job classifier feature columns ──────────────────────────
+# Single source of truth used by notebook 11 and 1_Analytics.py
+GHOST_FEATURE_COLS: list[str] = [
+    "desc_word_count",
+    "sentiment_polarity",
+    "sentiment_subjectivity",
+    "senior_signal_count",
+    "max_years_required",
+    "n_skills",
+    "exp_level_encoded",
+    "is_remote_int",
+    "sponsored_int",
+]
